@@ -1,6 +1,5 @@
 # ============================================================
-# MEDILEMBRETE - V1
-# Aplicativo de lembrete para medicamentos
+# MEDILEMBRETE - V1 (Com Login e Suporte a Mobile)
 # ============================================================
 
 import streamlit as st
@@ -10,7 +9,7 @@ import pandas as pd
 import os
 
 # ============================================================
-# CONFIGURAÇÃO DA PÁGINA (Ajustado para Mobile)
+# CONFIGURAÇÃO DA PÁGINA
 # ============================================================
 
 st.set_page_config(
@@ -21,7 +20,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# CONFIGURAÇÃO DO BANCO
+# CONFIGURAÇÃO DO BANCO DE DADOS
 # ============================================================
 
 DB_NAME = "medilembrete.db"
@@ -35,6 +34,17 @@ def criar_tabelas():
     conn = conectar_banco()
     cursor = conn.cursor()
 
+    # Tabela de Usuários
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            username TEXT UNIQUE NOT NULL,
+            senha TEXT NOT NULL
+        )
+    """)
+
+    # Tabela de Medicamentos
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS medicamentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,6 +63,7 @@ def criar_tabelas():
         )
     """)
 
+    # Tabela de Doses Registradas
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS registros_doses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,7 +83,34 @@ def criar_tabelas():
 criar_tabelas()
 
 # ============================================================
-# ESTILO VISUAL
+# FUNÇÕES DE AUTENTICAÇÃO
+# ============================================================
+
+def cadastrar_usuario(nome, username, senha):
+    conn = conectar_banco()
+    try:
+        conn.execute("""
+            INSERT INTO usuarios (nome, username, senha)
+            VALUES (?, ?, ?)
+        """, (nome, username, senha))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False
+
+def autenticar_usuario(username, senha):
+    conn = conectar_banco()
+    usuario = conn.execute("""
+        SELECT * FROM usuarios
+        WHERE username = ? AND senha = ?
+    """, (username, senha)).fetchone()
+    conn.close()
+    return usuario
+
+# ============================================================
+# ESTILO VISUAL (CSS)
 # ============================================================
 
 st.markdown("""
@@ -80,7 +118,60 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# FUNÇÕES DE BANCO
+# TELA DE LOGIN / CADASTRO
+# ============================================================
+
+if "usuario_logado" not in st.session_state:
+    st.session_state["usuario_logado"] = None
+
+if st.session_state["usuario_logado"] is None:
+    st.title("💊 MediLembrete")
+    st.caption("Seu cuidado, no horário certo.")
+    
+    aba_login, aba_cadastro = st.tabs(["🔐 Entrar", "📝 Criar Conta"])
+    
+    with aba_login:
+        with st.form("form_login"):
+            username = st.text_input("Usuário", placeholder="Ex.: joaosilva")
+            senha = st.text_input("Senha", type="password")
+            btn_entrar = st.form_submit_button("Entrar", use_container_width=True)
+            
+            if btn_entrar:
+                if not username.strip() or not senha.strip():
+                    st.error("Preencha todos os campos.")
+                else:
+                    usuario = autenticar_usuario(username.strip(), senha.strip())
+                    if usuario:
+                        st.session_state["usuario_logado"] = dict(usuario)
+                        st.success(f"Bem-vindo(a), {usuario['nome']}!")
+                        st.rerun()
+                    else:
+                        st.error("Usuário ou senha incorretos.")
+                        
+    with aba_cadastro:
+        with st.form("form_cadastro"):
+            novo_nome = st.text_input("Seu nome completo", placeholder="Ex.: João Silva")
+            novo_username = st.text_input("Escolha um usuário", placeholder="Ex.: joaosilva")
+            nova_senha = st.text_input("Escolha uma senha", type="password")
+            confirmar_senha = st.text_input("Confirme a senha", type="password")
+            btn_cadastrar = st.form_submit_button("Criar Conta", use_container_width=True)
+            
+            if btn_cadastrar:
+                if not novo_nome.strip() or not novo_username.strip() or not nova_senha.strip():
+                    st.error("Preencha todos os campos obrigatórios.")
+                elif nova_senha != confirmar_senha:
+                    st.error("As senhas não coincidem.")
+                else:
+                    sucesso = cadastrar_usuario(novo_nome.strip(), novo_username.strip(), nova_senha.strip())
+                    if sucesso:
+                        st.success("Conta criada com sucesso! Faça login na aba 'Entrar'.")
+                    else:
+                        st.error("Este nome de usuário já está em uso. Escolha outro.")
+
+    st.stop()
+
+# ============================================================
+# FUNÇÕES DE BANCO (MEDICAMENTOS)
 # ============================================================
 
 def buscar_medicamentos(apenas_ativos=True):
@@ -91,12 +182,6 @@ def buscar_medicamentos(apenas_ativos=True):
         dados = conn.execute("SELECT * FROM medicamentos ORDER BY nome").fetchall()
     conn.close()
     return dados
-
-def buscar_medicamento(medicamento_id):
-    conn = conectar_banco()
-    medicamento = conn.execute("SELECT * FROM medicamentos WHERE id = ?", (medicamento_id,)).fetchone()
-    conn.close()
-    return medicamento
 
 def adicionar_medicamento(nome, dosagem, forma, paciente, quantidade_dose, horarios, data_inicio, data_fim, estoque, estoque_minimo):
     conn = conectar_banco()
