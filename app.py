@@ -700,34 +700,9 @@ def calcular_status_dose(dose):
 
 with st.sidebar:
 
-    st.markdown("## 💊 MediLembrete")
-st.caption("Seu cuidado, no horário certo.")>
-
-            <div style="
-                background:#18a1ca;
-                width:42px;
-                height:42px;
-                border-radius:12px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                color:white;
-                font-size:22px;
-            ">
-                💊
-            </div>
-
-            <div>
-                <div class="logo-title">
-                    MediLembrete
-                </div>
-
-                <div class="logo-subtitle">
-                    Seu cuidado, no horário certo.
-                </div>
-            </div>
-
-        </div>
+    with st.sidebar:
+    st.markdown(
+        """
     """, unsafe_allow_html=True)
 
 
