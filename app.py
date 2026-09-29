@@ -27,16 +27,24 @@ def criar_tabelas():
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    # Tabela de Usuários (AGORA COM TELEFONE)
+    # 1. Tabela de Usuários (criação base)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL UNIQUE,
-            telefone TEXT, 
             senha TEXT NOT NULL
         )
     """)
 
+    # 🚀 A MÁGICA ACONTECE AQUI: 
+    # Tenta atualizar o banco antigo inserindo a coluna de telefone
+    try:
+        cursor.execute("ALTER TABLE usuarios ADD COLUMN telefone TEXT")
+    except sqlite3.OperationalError:
+        # Se der erro, significa que a coluna já foi criada antes. Ignoramos e seguimos.
+        pass
+
+    # 2. Tabela de medicamentos
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS medicamentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,6 +63,7 @@ def criar_tabelas():
         )
     """)
 
+    # 3. Tabela de registros das doses
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS registros_doses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
