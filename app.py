@@ -700,13 +700,8 @@ def calcular_status_dose(dose):
 
 with st.sidebar:
 
-    st.markdown("""
-        <div style="
-            display:flex;
-            align-items:center;
-            gap:12px;
-            margin-bottom:10px;
-        ">
+    st.markdown("## 💊 MediLembrete")
+st.caption("Seu cuidado, no horário certo.")>
 
             <div style="
                 background:#18a1ca;
@@ -818,77 +813,41 @@ if pagina == "🏠 Início":
 
     col1, col2, col3, col4 = st.columns(4)
 
+with col1:
+    st.markdown(
+        f'<div class="metric-card">'
+        f'<div class="metric-number">{total_doses}</div>'
+        f'<div class="metric-label">Doses hoje</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
-    with col1:
+with col2:
+    st.markdown(
+        f'<div class="metric-card">'
+        f'<div class="metric-number">{tomadas}</div>'
+        f'<div class="metric-label">Tomadas</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
-        st.markdown(f"""
-        <div class="metric-card">
+with col3:
+    st.markdown(
+        f'<div class="metric-card">'
+        f'<div class="metric-number">{pendentes}</div>'
+        f'<div class="metric-label">Pendentes</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
-            <div class="metric-number">
-                {total_doses}
-            </div>
-
-            <div class="metric-label">
-                Doses hoje
-            </div>
-
-        </div>
-        """, unsafe_allow_html=True)
-
-
-    with col2:
-
-        st.markdown(f"""
-        <div class="metric-card">
-
-            <div class="metric-number">
-                {tomadas}
-            </div>
-
-            <div class="metric-label">
-                Tomadas
-            </div>
-
-        </div>
-        """, unsafe_allow_html=True)
-
-
-    with col3:
-
-        st.markdown(f"""
-        <div class="metric-card">
-
-            <div class="metric-number">
-                {pendentes}
-            </div>
-
-            <div class="metric-label">
-                Pendentes
-            </div>
-
-        </div>
-        """, unsafe_allow_html=True)
-
-
-    with col4:
-
-        st.markdown(f"""
-        <div class="metric-card">
-
-            <div class="metric-number">
-                {percentual}%
-            </div>
-
-            <div class="metric-label">
-                Registradas hoje
-            </div>
-
-        </div>
-        """, unsafe_allow_html=True)
-
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
+with col4:
+    st.markdown(
+        f'<div class="metric-card">'
+        f'<div class="metric-number">{percentual}%</div>'
+        f'<div class="metric-label">Registradas hoje</div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
     # --------------------------------------------------------
     # PRÓXIMA DOSE
