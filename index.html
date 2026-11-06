@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💊 MediLembrete</title>
+  <style>
+    /* =====================================================
+       RESET & BASE
+    ===================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --azul:        #1598c5;
+      --azul-escuro: #0d7aa3;
+      --verde:       #22a77a;
+      --verde-escuro:#178a63;
+      --vermelho:    #e64b5d;
+      --amarelo:     #f5a623;
+      --cinza-bg:    #f4f8fb;
+      --cinza-card:  #ffffff;
+      --cinza-borda: #dce8ef;
+      --texto:       #1a2b35;
+      --subtexto:    #5a717d;
+      --fonte-base:  22px;
+      --fonte-titulo:28px;
+      --fonte-grande:32px;
+      --raio:        18px;
+      --sombra:      0 4px 20px rgba(20,60,80,.09);
+    }
+
+    html { font-size: var(--fonte-base); scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--cinza-bg);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    /* =====================================================
+       TELAS (sistema de navegação simples)
+    ===================================================== */
+    .tela { display: none; min-height: 100vh; }
+    .tela.ativa { display: block; }
+
+    /* =====================================================
+       TELA DE LOGIN
+    ===================================================== */
+    #tela-login {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      min-height: 100vh;
+      background: linear-gradient(160deg, #e8f5fb 0%, #f4f8fb 100%);
+    }
+    #tela-login.ativa { display: flex; }
+
+    .logo-titulo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .logo-titulo .icone { font-size: 72px; line-height: 1; }
+    .logo-titulo h1  { font-size: 48px; font-weight: 800; color: var(--azul); margin-top: 10px; }
+    .logo-titulo p   { font-size: 22px; color: var(--subtexto); margin-top: 6px; }
+
+    .caixa-login {
+      background: white;
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .abas-login { display: flex; gap: 10px; margin-bottom: 28px; }
+    .aba-btn {
+      flex: 1;
+      padding: 14px;
+      font-size: 20px;
+      font-weight: 700;
+      border: 2px solid var(--cinza-borda);
+      border-radius: 12px;
+      cursor: pointer;
+      background: #f4f8fb;
+      color: var(--subtexto);
+      transition: all .2s;
+    }
+    .aba-btn.ativa {
+      background: var(--azul);
+      color: white;
+      border-color: var(--azul);
+    }
+
+    .painel-aba { display: none; }
+    .painel-aba.ativo { display: block; }
+
+    /* =====================================================
+       CAMPOS & LABELS
+    ===================================================== */
+    .campo { margin-bottom: 20px; }
+    .campo label {
+      display: block;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--texto);
+      margin-bottom: 8px;
+    }
+    .campo input, .campo select {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 20px;
+      border: 2px solid var(--cinza-borda);
+      border-radius: 12px;
+      background: #f9fcfd;
+      color: var(--texto);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .campo input:focus, .campo select:focus { border-color: var(--azul); background: white; }
+    .campo small { font-size: 15px; color: var(--subtexto); margin-top: 4px; display: block; }
+
+    /* =====================================================
+       BOTÕES
+    ===================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 28px;
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform .1s, opacity .2s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-azul   { background: var(--azul);    color: white; }
+    .btn-azul:hover   { background: var(--azul-escuro); }
+    .btn-verde  { background: var(--verde);   color: white; }
+    .btn-verde:hover  { background: var(--verde-escuro); }
+    .btn-vermelho { background: var(--vermelho); color: white; }
+    .btn-amarelo  { background: var(--amarelo);  color: white; }
+    .btn-cinza  { background: #e0eaef; color: var(--texto); }
+    .btn-cinza:hover { background: #cddae2; }
+    .btn-bloco  { width: 100%; }
+    .btn-grande { padding: 22px 30px; font-size: 24px; border-radius: 18px; }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      text-decoration: none;
+      margin-top: 8px;
+    }
+
+    /* =====================================================
+       TELA PRINCIPAL - LAYOUT
+    ===================================================== */
+    #tela-app { display: none; flex-direction: column; min-height: 100vh; }
+    #tela-app.ativa { display: flex; }
+
+    /* Header */
+    .app-header {
+      background: white;
+      border-bottom: 2px solid var(--cinza-borda);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(20,60,80,.07);
+    }
+    .app-header .marca { font-size: 26px; font-weight: 800; color: var(--azul); }
+    .app-header .saudacao { font-size: 18px; color: var(--subtexto); }
+    .btn-sair { background: #f0f5f8; color: var(--subtexto); font-size: 17px; padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; }
+    .btn-sair:hover { background: #e0eaef; }
+
+    /* Conteúdo */
+    .app-conteudo { flex: 1; padding: 24px 20px; max-width: 820px; margin: 0 auto; width: 100%; }
+
+    /* Barra de navegação inferior */
+    .nav-inferior {
+      background: white;
+      border-top: 2px solid var(--cinza-borda);
+      display: flex;
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+      box-shadow: 0 -2px 10px rgba(20,60,80,.07);
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 8px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--subtexto);
+      font-size: 13px;
+      font-weight: 600;
+      transition: color .2s, background .2s;
+    }
+    .nav-item:hover  { background: #f0f8fc; }
+    .nav-item.ativo  { color: var(--azul); background: #eaf4fb; }
+    .nav-item .nav-icone { font-size: 28px; line-height: 1; }
+    .nav-item .nav-label { font-size: 14px; }
+
+    /* =====================================================
+       CARDS
+    ===================================================== */
+    .card {
+      background: var(--cinza-card);
+      border-radius: var(--raio);
+      border: 1.5px solid var(--cinza-borda);
+      box-shadow: var(--sombra);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+    .card-titulo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--texto);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .card-subtitulo { font-size: 18px; color: var(--subtexto); margin-bottom: 12px; }
+
+    /* =====================================================
+       ALERTAS
+    ===================================================== */
+    .alerta {
+      padding: 18px 20px;
+      border-radius: 14px;
+      font-size: 19px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+    .alerta-sucesso  { background: #eaf8f3; color: #155d44; border-left: 6px solid var(--verde); }
+    .alerta-erro     { background: #fff1f2; color: #7a1e2a; border-left: 6px solid var(--vermelho); }
+    .alerta-aviso    { background: #fff8ec; color: #7a5000; border-left: 6px solid var(--amarelo); }
+    .alerta-info     { background: #eaf4fc; color: #0d5a79; border-left: 6px solid var(--azul); }
+
+    /* =====================================================
+       PÁGINA INÍCIO
+    ===================================================== */
+    .secao-titulo {
+      font-size: var(--fonte-titulo);
+      font-weight: 800;
+      color: var(--texto);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dose-card {
+      background: white;
+      border-radius: var(--raio);
+      border: 2px solid var(--cinza-borda);
+      box-shadow: var(--sombra);
+      padding: 22px;
+      margin-bottom: 16px;
+      transition: border-color .2s;
+    }
+    .dose-card.tomado  { border-color: var(--verde);    background: #f3fdf8; }
+    .dose-card.pendente{ border-color: var(--vermelho); background: #fff8f8; }
+    .dose-card.programado { border-color: var(--azul); }
+
+    .dose-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .dose-nome { font-size: 26px; font-weight: 800; color: var(--texto); }
+    .dose-dosagem { font-size: 18px; color: var(--subtexto); margin-top: 2px; }
+    .dose-horario {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--azul);
+      text-align: right;
+      line-height: 1;
+    }
+    .dose-horario small { font-size: 14px; display: block; color: var(--subtexto); text-align: center; margin-top: 2px; }
+
+    .dose-paciente {
+      background: #f0f6fa;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 18px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .dose-acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .badge-verde  { background: #d4f5e9; color: #155d44; }
+    .badge-vermelho { background: #fde0e4; color: #7a1e2a; }
+    .badge-azul   { background: #d4edf8; color: #0d5a79; }
+
+    .estoque-baixo-alerta {
+      margin-top: 10px;
+      font-size: 16px;
+      color: var(--vermelho);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =====================================================
+       MÉTRICAS
+    ===================================================== */
+    .metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .metrica-card {
+      background: white;
+      border-radius: 14px;
+      border: 1.5px solid var(--cinza-borda);
+      padding: 20px 14px;
+      text-align: center;
+      box-shadow: var(--sombra);
+    }
+    .metrica-numero { font-size: 38px; font-weight: 800; color: var(--azul); line-height: 1; }
+    .metrica-label  { font-size: 14px; color: var(--subtexto); font-weight: 600; margin-top: 6px; }
+
+    /* =====================================================
+       FORMULÁRIOS
+    ===================================================== */
+    .form-secao {
+      background: white;
+      border-radius: var(--raio);
+      border: 1.5px solid var(--cinza-borda);
+      box-shadow: var(--sombra);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .form-secao h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--azul);
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .horarios-dinamicos { display: flex; flex-direction: column; gap: 10px; }
+    .horario-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .horario-item input {
+      flex: 1;
+      padding: 14px 16px;
+      font-size: 20px;
+      border: 2px solid var(--cinza-borda);
+      border-radius: 10px;
+      background: #f9fcfd;
+      color: var(--texto);
+      outline: none;
+    }
+    .horario-item input:focus { border-color: var(--azul); }
+    .btn-rem-horario {
+      background: #fde0e4;
+      color: var(--vermelho);
+      border: none;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width: 500px) { .grade-2 { grid-template-columns: 1fr; } }
+
+    /* =====================================================
+       LISTA DE MEDICAMENTOS
+    ===================================================== */
+    .med-card {
+      background: white;
+      border-radius: var(--raio);
+      border: 1.5px solid var(--cinza-borda);
+      box-shadow: var(--sombra);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    .med-nome { font-size: 24px; font-weight: 800; color: var(--texto); }
+    .med-detalhe { font-size: 18px; color: var(--subtexto); margin-top: 4px; }
+    .med-info {
+      background: #f0f6fa;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      font-size: 17px;
+      line-height: 1.8;
+    }
+    .med-acoes { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+    /* =====================================================
+       TABELA HISTÓRICO
+    ===================================================== */
+    .tabela-wrapper { overflow-x: auto; border-radius: var(--raio); box-shadow: var(--sombra); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      font-size: 18px;
+    }
+    thead th {
+      background: var(--azul);
+      color: white;
+      padding: 16px 18px;
+      text-align: left;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    tbody tr { border-bottom: 1px solid var(--cinza-borda); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 15px 18px; vertical-align: middle; }
+    tbody tr:hover { background: #f4f8fb; }
+
+    /* =====================================================
+       ESTOQUE
+    ===================================================== */
+    .estoque-grid { display: grid; gap: 14px; }
+    .estoque-card {
+      background: white;
+      border-radius: var(--raio);
+      border: 2px solid var(--cinza-borda);
+      box-shadow: var(--sombra);
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .estoque-card.baixo { border-color: var(--vermelho); background: #fff8f8; }
+    .estoque-card.ok    { border-color: var(--verde); }
+    .estoque-esq { flex: 1; }
+    .estoque-nome { font-size: 22px; font-weight: 800; color: var(--texto); }
+    .estoque-dir { text-align: right; }
+    .estoque-qtd { font-size: 36px; font-weight: 900; line-height: 1; }
+    .estoque-qtd.baixo { color: var(--vermelho); }
+    .estoque-qtd.ok    { color: var(--verde); }
+    .estoque-qtd-label { font-size: 14px; color: var(--subtexto); }
+
+    /* =====================================================
+       MODAL DE CONFIRMAÇÃO
+    ===================================================== */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.aberto { display: flex; }
+    .modal-caixa {
+      background: white;
+      border-radius: var(--raio);
+      padding: 36px 30px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,.18);
+    }
+    .modal-icone { font-size: 60px; margin-bottom: 14px; }
+    .modal-titulo { font-size: 26px; font-weight: 800; color: var(--texto); margin-bottom: 10px; }
+    .modal-msg    { font-size: 19px; color: var(--subtexto); margin-bottom: 28px; line-height: 1.5; }
+    .modal-acoes  { display: flex; gap: 14px; justify-content: center; }
+
+    /* =====================================================
+       SPINNER
+    ===================================================== */
+    .spinner {
+      display: inline-block;
+      width: 22px; height: 22px;
+      border: 3px solid rgba(255,255,255,.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* =====================================================
+       TOAST
+    ===================================================== */
+    #toast-container {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      pointer-events: none;
+    }
+    .toast {
+      background: rgba(30,50,60,.92);
+      color: white;
+      padding: 16px 28px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 600;
+      animation: fadeInUp .3s ease, fadeOut .4s ease 2.6s forwards;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    @keyframes fadeInUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+    @keyframes fadeOut  { from { opacity:1; } to { opacity:0; } }
+
+    /* =====================================================
+       RESPONSIVIDADE
+    ===================================================== */
+    @media (max-width: 600px) {
+      :root { --fonte-base: 18px; --fonte-titulo: 24px; }
+      .metricas { grid-template-columns: repeat(3,1fr); gap: 8px; }
+      .metrica-numero { font-size: 28px; }
+      .metrica-label  { font-size: 12px; }
+      .dose-nome { font-size: 22px; }
+      .dose-horario { font-size: 28px; }
+      .app-conteudo { padding: 16px 14px; }
+      thead th { font-size: 14px; padding: 12px 10px; }
+      tbody td { font-size: 15px; padding: 11px 10px; }
+    }
+
+    /* =====================================================
+       UTILITÁRIOS
+    ===================================================== */
+    .mt-8  { margin-top:  8px; }
+    .mt-16 { margin-top: 16px; }
+    .mb-4  { margin-bottom:  4px; }
+    .mb-16 { margin-bottom: 16px; }
+    .texto-centro { text-align: center; }
+    .texto-cinza  { color: var(--subtexto); }
+    .negrito      { font-weight: 700; }
+    .vazio-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--subtexto);
+      font-size: 20px;
+    }
+    .vazio-msg .vazio-icone { font-size: 52px; display: block; margin-bottom: 12px; }
+
+    /* Checkbox acessível */
+    .check-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .check-wrapper input[type="checkbox"] {
+      width: 28px; height: 28px;
+      cursor: pointer;
+      accent-color: var(--azul);
+    }
+    .check-wrapper span { font-size: 19px; font-weight: 600; color: var(--texto); }
+
+    /* Campo invisível por padrão */
+    .campo-oculto { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     TELA DE LOGIN
+============================================================ -->
+<div id="tela-login" class="tela ativa">
+  <div class="logo-titulo">
+    <div class="icone">💊</div>
+    <h1>MediLembrete</h1>
+    <p>Sua saúde organizada com facilidade</p>
+  </div>
+
+  <div class="caixa-login">
+    <div class="abas-login">
+      <button class="aba-btn ativa" onclick="abrirAba('entrar')">🔑 Já tenho conta</button>
+      <button class="aba-btn"       onclick="abrirAba('cadastrar')">📝 Quero me cadastrar</button>
+    </div>
+
+    <!-- ABA: Entrar -->
+    <div id="painel-entrar" class="painel-aba ativo">
+      <div id="login-erro" class="alerta alerta-erro" style="display:none;"></div>
+      <div class="campo">
+        <label for="login-nome">Seu Nome</label>
+        <input id="login-nome" type="text" placeholder="Ex: Dona Maria" autocomplete="username" />
+      </div>
+      <div class="campo">
+        <label for="login-senha">Sua Senha</label>
+        <input id="login-senha" type="password" placeholder="Digite sua senha" autocomplete="current-password" />
+      </div>
+      <button class="btn btn-azul btn-bloco btn-grande" onclick="fazerLogin()">
+        Entrar no Aplicativo ➜
+      </button>
+    </div>
+
+    <!-- ABA: Cadastrar -->
+    <div id="painel-cadastrar" class="painel-aba">
+      <div id="cad-erro"  class="alerta alerta-erro"    style="display:none;"></div>
+      <div id="cad-ok"    class="alerta alerta-sucesso" style="display:none;"></div>
+      <div class="campo">
+        <label for="cad-nome">Como você quer ser chamado?</label>
+        <input id="cad-nome" type="text" placeholder="Ex: Dona Maria ou João da Silva" />
+      </div>
+      <div class="campo">
+        <label for="cad-tel">Seu WhatsApp (com DDD, só números)</label>
+        <input id="cad-tel" type="tel" placeholder="Ex: 11987654321" inputmode="numeric" />
+      </div>
+      <div class="campo">
+        <label for="cad-senha">Crie uma senha fácil de lembrar</label>
+        <input id="cad-senha" type="password" placeholder="Mínimo 4 caracteres" />
+      </div>
+      <div class="campo">
+        <label for="cad-senha2">Repita a senha</label>
+        <input id="cad-senha2" type="password" placeholder="Repita a senha" />
+      </div>
+      <button class="btn btn-verde btn-bloco btn-grande" onclick="cadastrarUsuario()">
+        Criar minha conta ✓
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TELA PRINCIPAL
+============================================================ -->
+<div id="tela-app" class="tela">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div>
+      <div class="marca">💊 MediLembrete</div>
+      <div class="saudacao" id="header-saudacao">Olá!</div>
+    </div>
+    <button class="btn-sair" onclick="sair()">🚪 Sair</button>
+  </header>
+
+  <!-- Conteúdo das páginas -->
+  <main class="app-conteudo">
+
+    <!-- ==== PÁGINA INÍCIO ==== -->
+    <section id="pag-inicio" class="pagina">
+      <h2 class="secao-titulo" id="titulo-inicio">☀️ Bom dia!</h2>
+
+      <!-- Alertas de estoque baixo -->
+      <div id="alertas-estoque"></div>
+
+      <!-- Métricas do dia -->
+      <div class="metricas">
+        <div class="metrica-card">
+          <div class="metrica-numero" id="metrica-total">0</div>
+          <div class="metrica-label">No dia</div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-numero" id="metrica-tomadas" style="color:var(--verde)">0</div>
+          <div class="metrica-label">Tomadas</div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-numero" id="metrica-pendentes" style="color:var(--vermelho)">0</div>
+          <div class="metrica-label">Pendentes</div>
+        </div>
+      </div>
+
+      <h3 class="secao-titulo" style="font-size:22px; margin-bottom:14px;">💊 Medicamentos de hoje</h3>
+      <div id="lista-doses"></div>
+    </section>
+
+    <!-- ==== PÁGINA MEDICAMENTOS ==== -->
+    <section id="pag-medicamentos" class="pagina" style="display:none;">
+
+      <!-- Formulário de cadastro -->
+      <div class="form-secao">
+        <h2>➕ Adicionar Remédio</h2>
+
+        <div class="campo">
+          <label for="med-nome">Qual o nome do remédio? *</label>
+          <input id="med-nome" type="text" placeholder="Ex: Atenolol, Losartana..." />
+        </div>
+
+        <div class="grade-2">
+          <div class="campo">
+            <label for="med-dosagem">Dosagem</label>
+            <input id="med-dosagem" type="text" placeholder="Ex: 50mg, 10ml..." />
+          </div>
+          <div class="campo">
+            <label for="med-forma">Formato</label>
+            <select id="med-forma">
+              <option>Comprimido</option>
+              <option>Cápsula</option>
+              <option>Gotas</option>
+              <option>Xarope</option>
+              <option>Injeção</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grade-2">
+          <div class="campo">
+            <label for="med-paciente">Quem vai tomar? *</label>
+            <input id="med-paciente" type="text" placeholder="Nome do paciente" />
+          </div>
+          <div class="campo">
+            <label for="med-qtd-dose">Quantas unidades por vez?</label>
+            <input id="med-qtd-dose" type="number" min="1" value="1" />
+          </div>
+        </div>
+
+        <!-- Horários dinâmicos -->
+        <div class="campo">
+          <label>Que horas precisa tomar? *</label>
+          <div id="horarios-container" class="horarios-dinamicos">
+            <div class="horario-item">
+              <input type="time" class="horario-input" value="08:00" />
+              <button class="btn-rem-horario" onclick="removerHorario(this)" title="Remover este horário">✕</button>
+            </div>
+          </div>
+          <button class="btn btn-cinza mt-8" onclick="adicionarHorario()" style="font-size:17px; padding:10px 16px;">
+            + Adicionar outro horário
+          </button>
+        </div>
+
+        <div class="grade-2">
+          <div class="campo">
+            <label for="med-inicio">A partir de qual dia?</label>
+            <input id="med-inicio" type="date" />
+          </div>
+          <div class="campo campo-oculto" id="campo-data-fim">
+            <label for="med-fim">Termina em qual dia?</label>
+            <input id="med-fim" type="date" />
+          </div>
+        </div>
+
+        <label class="check-wrapper">
+          <input type="checkbox" id="chk-data-fim" onchange="toggleDataFim()" />
+          <span>📅 Este remédio tem data para acabar</span>
+        </label>
+
+        <div class="grade-2">
+          <div class="campo">
+            <label for="med-estoque">Quantos você tem em casa agora?</label>
+            <input id="med-estoque" type="number" min="0" value="30" />
+          </div>
+          <div class="campo">
+            <label for="med-estoque-min">Avisar quando sobrar quantos?</label>
+            <input id="med-estoque-min" type="number" min="0" value="5" />
+          </div>
+        </div>
+
+        <div id="form-med-erro" class="alerta alerta-erro" style="display:none;"></div>
+        <button class="btn btn-azul btn-bloco btn-grande" onclick="salvarMedicamento()">
+          💾 Salvar Remédio
+        </button>
+      </div>
+
+      <!-- Lista de medicamentos cadastrados -->
+      <h3 class="secao-titulo" style="font-size:22px; margin-bottom:14px;">📋 Remédios Cadastrados</h3>
+      <div id="lista-medicamentos"></div>
+    </section>
+
+    <!-- ==== PÁGINA HISTÓRICO ==== -->
+    <section id="pag-historico" class="pagina" style="display:none;">
+      <h2 class="secao-titulo">📊 Histórico de Doses</h2>
+      <p style="font-size:19px; color:var(--subtexto); margin-bottom:20px;">
+        Tudo o que você tomou, registrado com carinho.
+      </p>
+      <div id="container-historico"></div>
+    </section>
+
+    <!-- ==== PÁGINA ESTOQUE ==== -->
+    <section id="pag-estoque" class="pagina" style="display:none;">
+      <h2 class="secao-titulo">📦 Controle de Estoque</h2>
+      <p style="font-size:19px; color:var(--subtexto); margin-bottom:20px;">
+        Saiba a hora certa de comprar mais remédios.
+      </p>
+      <div id="lista-estoque"></div>
+    </section>
+
+  </main>
+
+  <!-- Navegação inferior -->
+  <nav class="nav-inferior">
+    <button class="nav-item ativo" onclick="navegarPara('inicio')">
+      <span class="nav-icone">🏠</span>
+      <span class="nav-label">Início</span>
+    </button>
+    <button class="nav-item" onclick="navegarPara('medicamentos')">
+      <span class="nav-icone">💊</span>
+      <span class="nav-label">Remédios</span>
+    </button>
+    <button class="nav-item" onclick="navegarPara('historico')">
+      <span class="nav-icone">📊</span>
+      <span class="nav-label">Histórico</span>
+    </button>
+    <button class="nav-item" onclick="navegarPara('estoque')">
+      <span class="nav-icone">📦</span>
+      <span class="nav-label">Estoque</span>
+    </button>
+  </nav>
+</div>
+
+
+<!-- ============================================================
+     MODAL DE CONFIRMAÇÃO (exclusão)
+============================================================ -->
+<div id="modal" class="modal-overlay">
+  <div class="modal-caixa">
+    <div class="modal-icone">🗑️</div>
+    <div class="modal-titulo">Apagar remédio?</div>
+    <div class="modal-msg" id="modal-msg">Tem certeza? Esta ação não pode ser desfeita.</div>
+    <div class="modal-acoes">
+      <button class="btn btn-cinza"    onclick="fecharModal()">Não, cancelar</button>
+      <button class="btn btn-vermelho" onclick="confirmarExclusao()">Sim, apagar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div id="toast-container"></div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+// ============================================================
+// BANCO DE DADOS LOCAL (IndexedDB)
+// ============================================================
+let db;
+
+function abrirDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('MediLembrete', 2);
+
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('usuarios')) {
+        d.createObjectStore('usuarios', { keyPath: 'nome' });
+      }
+      if (!d.objectStoreNames.contains('medicamentos')) {
+        const ms = d.createObjectStore('medicamentos', { keyPath: 'id', autoIncrement: true });
+        ms.createIndex('ativo', 'ativo', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('doses')) {
+        const ds = d.createObjectStore('doses', { keyPath: 'id', autoIncrement: true });
+        ds.createIndex('medData', ['medicamento_id', 'data', 'horario'], { unique: true });
+      }
+    };
+
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror   = (e) => reject(e);
+  });
+}
+
+// Genéricos
+function dbTrans(store, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, mode);
+    const st  = tx.objectStore(store);
+    const req = fn(st);
+    if (req) {
+      req.onsuccess = (e) => resolve(e.target.result);
+      req.onerror   = (e) => reject(e);
+    } else {
+      tx.oncomplete = () => resolve();
+      tx.onerror    = (e) => reject(e);
+    }
+  });
+}
+
+function dbAdd(store, obj)        { return dbTrans(store, 'readwrite', s => s.add(obj));    }
+function dbPut(store, obj)        { return dbTrans(store, 'readwrite', s => s.put(obj));    }
+function dbGet(store, key)        { return dbTrans(store, 'readonly',  s => s.get(key));    }
+function dbDelete(store, key)     { return dbTrans(store, 'readwrite', s => s.delete(key)); }
+function dbGetAll(store)          { return dbTrans(store, 'readonly',  s => s.getAll());    }
+
+function dbGetByIndex(store, indexName, keyRange) {
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(store, 'readonly');
+    const st  = tx.objectStore(store);
+    const idx = st.index(indexName);
+    const req = idx.getAll(keyRange);
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror   = (e) => reject(e);
+  });
+}
+
+
+// ============================================================
+// ESTADO
+// ============================================================
+let usuarioLogado     = null;
+let telefoneLogado    = null;
+let medicamentoParaExcluir = null;
+
+
+// ============================================================
+// INÍCIO
+// ============================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  await abrirDB();
+
+  // Restaurar sessão
+  const sessao = sessionStorage.getItem('usuario');
+  if (sessao) {
+    const u = JSON.parse(sessao);
+    usuarioLogado  = u.nome;
+    telefoneLogado = u.telefone;
+    entrarNoApp();
+  }
+
+  // Definir data padrão do formulário
+  document.getElementById('med-inicio').value = dataHoje();
+  document.getElementById('med-fim').value    = dataFuturo(30);
+});
+
+
+// ============================================================
+// UTILITÁRIOS DE DATA
+// ============================================================
+function dataHoje()         { return new Date().toISOString().split('T')[0]; }
+function dataFuturo(dias)   {
+  const d = new Date(); d.setDate(d.getDate() + dias);
+  return d.toISOString().split('T')[0];
+}
+function formatarDataBR(iso) {
+  if (!iso) return '';
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+function horaAgora() {
+  return new Date().toTimeString().slice(0,5);
+}
+function saudacao() {
+  const h = new Date().getHours();
+  if (h < 12) return '☀️ Bom dia';
+  if (h < 18) return '🌤️ Boa tarde';
+  return '🌙 Boa noite';
+}
+
+
+// ============================================================
+// TOASTS
+// ============================================================
+function mostrarToast(msg, tipo = 'sucesso') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  const icone = tipo === 'erro' ? '❌' : tipo === 'aviso' ? '⚠️' : '✅';
+  t.className = 'toast';
+  t.innerHTML = `${icone} ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3100);
+}
+
+
+// ============================================================
+// NAVEGAÇÃO DE ABAS (Login)
+// ============================================================
+function abrirAba(qual) {
+  document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+  document.querySelectorAll('.painel-aba').forEach(p => p.classList.remove('ativo'));
+  document.getElementById(`painel-${qual}`).classList.add('ativo');
+  event.currentTarget.classList.add('ativa');
+}
+
+
+// ============================================================
+// AUTENTICAÇÃO
+// ============================================================
+async function fazerLogin() {
+  const nome  = document.getElementById('login-nome').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  const errDiv = document.getElementById('login-erro');
+  errDiv.style.display = 'none';
+
+  if (!nome || !senha) {
+    errDiv.textContent = '⚠️ Preencha seu nome e sua senha.';
+    errDiv.style.display = 'flex';
+    return;
+  }
+
+  const usuario = await dbGet('usuarios', nome);
+  if (!usuario || usuario.senha !== senha) {
+    errDiv.textContent = '❌ Nome ou senha incorretos. Tente novamente.';
+    errDiv.style.display = 'flex';
+    return;
+  }
+
+  usuarioLogado  = usuario.nome;
+  telefoneLogado = usuario.telefone;
+  sessionStorage.setItem('usuario', JSON.stringify({ nome: usuario.nome, telefone: usuario.telefone }));
+  entrarNoApp();
+}
+
+async function cadastrarUsuario() {
+  const nome   = document.getElementById('cad-nome').value.trim();
+  const tel    = document.getElementById('cad-tel').value.replace(/\D/g, '');
+  const senha  = document.getElementById('cad-senha').value;
+  const senha2 = document.getElementById('cad-senha2').value;
+  const errDiv = document.getElementById('cad-erro');
+  const okDiv  = document.getElementById('cad-ok');
+  errDiv.style.display = 'none';
+  okDiv.style.display  = 'none';
+
+  if (!nome || !senha) {
+    errDiv.textContent = '⚠️ Preencha o nome e a senha.';
+    errDiv.style.display = 'flex'; return;
+  }
+  if (senha.length < 4) {
+    errDiv.textContent = '⚠️ A senha precisa ter pelo menos 4 caracteres.';
+    errDiv.style.display = 'flex'; return;
+  }
+  if (senha !== senha2) {
+    errDiv.textContent = '❌ As senhas estão diferentes. Por favor, repita igual.';
+    errDiv.style.display = 'flex'; return;
+  }
+  const existe = await dbGet('usuarios', nome);
+  if (existe) {
+    errDiv.textContent = '⚠️ Este nome já está em uso. Tente adicionar seu sobrenome.';
+    errDiv.style.display = 'flex'; return;
+  }
+
+  await dbAdd('usuarios', { nome, telefone: tel, senha });
+  okDiv.textContent = '✅ Conta criada! Clique em "Já tenho conta" para entrar.';
+  okDiv.style.display = 'flex';
+  document.getElementById('cad-nome').value   = '';
+  document.getElementById('cad-tel').value    = '';
+  document.getElementById('cad-senha').value  = '';
+  document.getElementById('cad-senha2').value = '';
+}
+
+function sair() {
+  usuarioLogado  = null;
+  telefoneLogado = null;
+  sessionStorage.removeItem('usuario');
+  document.getElementById('tela-app').classList.remove('ativa');
+  document.getElementById('tela-app').style.display = 'none';
+  document.getElementById('tela-login').classList.add('ativa');
+  document.getElementById('login-nome').value  = '';
+  document.getElementById('login-senha').value = '';
+}
+
+function entrarNoApp() {
+  document.getElementById('tela-login').classList.remove('ativa');
+  document.getElementById('tela-app').classList.add('ativa');
+  document.getElementById('tela-app').style.display = 'flex';
+  document.getElementById('header-saudacao').textContent = `Olá, ${usuarioLogado}! 👋`;
+  document.getElementById('med-paciente').value = usuarioLogado;
+  navegarPara('inicio');
+}
+
+
+// ============================================================
+// NAVEGAÇÃO DE PÁGINAS
+// ============================================================
+const PAGINAS = ['inicio', 'medicamentos', 'historico', 'estoque'];
+
+function navegarPara(pag) {
+  PAGINAS.forEach(p => {
+    document.getElementById(`pag-${p}`).style.display = p === pag ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach((b, i) => {
+    b.classList.toggle('ativo', PAGINAS[i] === pag);
+  });
+
+  if (pag === 'inicio')        renderizarInicio();
+  if (pag === 'medicamentos')  renderizarMedicamentos();
+  if (pag === 'historico')     renderizarHistorico();
+  if (pag === 'estoque')       renderizarEstoque();
+}
+
+
+// ============================================================
+// HORÁRIOS DINÂMICOS
+// ============================================================
+function adicionarHorario() {
+  const container = document.getElementById('horarios-container');
+  const item = document.createElement('div');
+  item.className = 'horario-item';
+  item.innerHTML = `
+    <input type="time" class="horario-input" value="12:00" />
+    <button class="btn-rem-horario" onclick="removerHorario(this)" title="Remover">✕</button>
+  `;
+  container.appendChild(item);
+}
+
+function removerHorario(btn) {
+  const container = document.getElementById('horarios-container');
+  if (container.children.length <= 1) {
+    mostrarToast('Você precisa de pelo menos um horário.', 'aviso');
+    return;
+  }
+  btn.closest('.horario-item').remove();
+}
+
+function obterHorarios() {
+  return [...document.querySelectorAll('.horario-input')]
+    .map(i => i.value)
+    .filter(Boolean)
+    .sort();
+}
+
+function toggleDataFim() {
+  const checked = document.getElementById('chk-data-fim').checked;
+  document.getElementById('campo-data-fim').style.display = checked ? 'block' : 'none';
+}
+
+
+// ============================================================
+// MEDICAMENTOS — SALVAR
+// ============================================================
+async function salvarMedicamento() {
+  const nome      = document.getElementById('med-nome').value.trim();
+  const dosagem   = document.getElementById('med-dosagem').value.trim();
+  const forma     = document.getElementById('med-forma').value;
+  const paciente  = document.getElementById('med-paciente').value.trim();
+  const qtdDose   = parseInt(document.getElementById('med-qtd-dose').value) || 1;
+  const inicio    = document.getElementById('med-inicio').value;
+  const fim       = document.getElementById('chk-data-fim').checked
+                      ? document.getElementById('med-fim').value : null;
+  const estoque   = parseInt(document.getElementById('med-estoque').value) || 0;
+  const estoqueMin= parseInt(document.getElementById('med-estoque-min').value) || 5;
+  const horarios  = obterHorarios();
+  const errDiv    = document.getElementById('form-med-erro');
+  errDiv.style.display = 'none';
+
+  if (!nome) {
+    errDiv.textContent = '⚠️ Digite o nome do remédio.';
+    errDiv.style.display = 'flex'; return;
+  }
+  if (!paciente) {
+    errDiv.textContent = '⚠️ Digite o nome de quem vai tomar.';
+    errDiv.style.display = 'flex'; return;
+  }
+  if (!horarios.length) {
+    errDiv.textContent = '⚠️ Adicione pelo menos um horário.';
+    errDiv.style.display = 'flex'; return;
+  }
+  if (!inicio) {
+    errDiv.textContent = '⚠️ Selecione a data de início.';
+    errDiv.style.display = 'flex'; return;
+  }
+
+  await dbAdd('medicamentos', {
+    nome, dosagem, forma, paciente,
+    quantidade_dose: qtdDose,
+    horarios: horarios.join(', '),
+    data_inicio: inicio,
+    data_fim: fim,
+    estoque, estoque_minimo: estoqueMin,
+    ativo: 1,
+    criado_em: new Date().toISOString()
+  });
+
+  // Limpar formulário
+  document.getElementById('med-nome').value       = '';
+  document.getElementById('med-dosagem').value    = '';
+  document.getElementById('med-qtd-dose').value   = '1';
+  document.getElementById('med-inicio').value     = dataHoje();
+  document.getElementById('med-fim').value        = dataFuturo(30);
+  document.getElementById('med-estoque').value    = '30';
+  document.getElementById('med-estoque-min').value= '5';
+  document.getElementById('chk-data-fim').checked = false;
+  document.getElementById('campo-data-fim').style.display = 'none';
+  document.getElementById('horarios-container').innerHTML = `
+    <div class="horario-item">
+      <input type="time" class="horario-input" value="08:00" />
+      <button class="btn-rem-horario" onclick="removerHorario(this)" title="Remover">✕</button>
+    </div>`;
+  document.getElementById('med-paciente').value = usuarioLogado;
+
+  mostrarToast('Remédio salvo com sucesso! 💊');
+  renderizarMedicamentos();
+}
+
+
+// ============================================================
+// MEDICAMENTOS — RENDER
+// ============================================================
+async function renderizarMedicamentos() {
+  const todos = await dbGetAll('medicamentos');
+  const ativos = todos.filter(m => m.ativo === 1);
+  const lista  = document.getElementById('lista-medicamentos');
+
+  if (!ativos.length) {
+    lista.innerHTML = `<div class="vazio-msg"><span class="vazio-icone">💊</span>Nenhum remédio cadastrado ainda.</div>`;
+    return;
+  }
+
+  lista.innerHTML = ativos.map(m => {
+    const fimTexto = m.data_fim ? formatarDataBR(m.data_fim) : 'Uso contínuo';
+    const estBadge = m.estoque <= m.estoque_minimo
+      ? `<span class="badge badge-vermelho">🔴 Estoque baixo: ${m.estoque}</span>`
+      : `<span class="badge badge-azul">📦 Estoque: ${m.estoque}</span>`;
+
+    return `
+    <div class="med-card" id="medcard-${m.id}">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="med-nome">💊 ${m.nome}</div>
+          <div class="med-detalhe">${m.dosagem || ''} ${m.dosagem && m.forma ? '•' : ''} ${m.forma}</div>
+        </div>
+        ${estBadge}
+      </div>
+      <div class="med-info">
+        👤 <b>${m.paciente}</b><br>
+        ⏰ Horários: <b>${m.horarios}</b><br>
+        💊 Tomar <b>${m.quantidade_dose}</b> unidade(s) por vez<br>
+        📅 De <b>${formatarDataBR(m.data_inicio)}</b> até <b>${fimTexto}</b>
+      </div>
+      <div class="med-acoes">
+        <button class="btn btn-vermelho" onclick="pedirExclusao(${m.id}, '${m.nome.replace(/'/g,"\\'")}')">
+          🗑️ Apagar
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ============================================================
+// INÍCIO — RENDER
+// ============================================================
+async function renderizarInicio() {
+  document.getElementById('titulo-inicio').textContent = `${saudacao()}, ${usuarioLogado}!`;
+
+  const hoje = dataHoje();
+  const doses = await obterDosesDoDia(hoje);
+
+  // Métricas
+  let tomadas = 0, pendentes = 0;
+  for (const d of doses) {
+    const st = await statusDose(d);
+    if (st === 'TOMADO')   tomadas++;
+    if (st === 'PENDENTE') pendentes++;
+  }
+  document.getElementById('metrica-total').textContent    = doses.length;
+  document.getElementById('metrica-tomadas').textContent  = tomadas;
+  document.getElementById('metrica-pendentes').textContent = pendentes;
+
+  // Alertas de estoque
+  const meds = await dbGetAll('medicamentos');
+  const baixos = meds.filter(m => m.ativo === 1 && m.estoque <= m.estoque_minimo);
+  const alertasDiv = document.getElementById('alertas-estoque');
+  alertasDiv.innerHTML = baixos.map(m =>
+    `<div class="alerta alerta-erro">
+      ⚠️ <b>${m.nome}</b> está com estoque baixo (<b>${m.estoque}</b> unidades). Está na hora de comprar mais!
+    </div>`
+  ).join('');
+
+  // Lista de doses
+  const lista = document.getElementById('lista-doses');
+  if (!doses.length) {
+    lista.innerHTML = `<div class="vazio-msg"><span class="vazio-icone">🎉</span>Nenhum remédio programado para hoje.</div>`;
+    return;
+  }
+
+  let html = '';
+  for (const dose of doses) {
+    const status = await statusDose(dose);
+    const classe  = status === 'TOMADO' ? 'tomado' : status === 'PENDENTE' ? 'pendente' : 'programado';
+    const simbolo = status === 'TOMADO' ? '✅' : status === 'PENDENTE' ? '⚠️' : '⏰';
+    const badgeHtml = status === 'TOMADO'
+      ? `<span class="badge badge-verde">✅ Tomado</span>`
+      : status === 'PENDENTE'
+        ? `<span class="badge badge-vermelho">⚠️ Atrasado</span>`
+        : `<span class="badge badge-azul">⏰ Programado</span>`;
+
+    const estoqueLow = dose.estoque <= dose.estoque_minimo
+      ? `<div class="estoque-baixo-alerta">⚠️ Estoque baixo: ${dose.estoque} unidades</div>` : '';
+
+    let acoes = '';
+    if (status !== 'TOMADO') {
+      acoes += `<button class="btn btn-verde btn-grande"
+        onclick="registrarDose(${dose.medicamento_id}, '${hoje}', '${dose.horario}', this)">
+        ✓ Tomei esse remédio
+      </button>`;
+    }
+    if (telefoneLogado && status !== 'TOMADO') {
+      const msg = encodeURIComponent(`Olá ${usuarioLogado}! Lembrete: Hora de tomar ${dose.nome} (${dose.dosagem || ''}) às ${dose.horario}. 💊`);
+      acoes += `<a class="btn-whatsapp" href="https://wa.me/55${telefoneLogado}?text=${msg}" target="_blank">
+        💬 Enviar lembrete no WhatsApp
+      </a>`;
+    }
+
+    html += `
+    <div class="dose-card ${classe}" id="dose-${dose.medicamento_id}-${dose.horario.replace(':','')}">
+      <div class="dose-topo">
+        <div>
+          <div class="dose-nome">${simbolo} ${dose.nome}</div>
+          <div class="dose-dosagem">${dose.dosagem || ''} ${dose.dosagem && dose.forma ? '•' : ''} ${dose.forma || ''}</div>
+          <div style="margin-top:6px;">${badgeHtml}</div>
+        </div>
+        <div class="dose-horario">${dose.horario}<small>horário</small></div>
+      </div>
+      <div class="dose-paciente">
+        👤 <b>${dose.paciente}</b>
+        &nbsp;|&nbsp;
+        💊 Tomar <b>${dose.quantidade_dose}</b> unidade(s)
+      </div>
+      ${estoqueLow}
+      <div class="dose-acoes">${acoes}</div>
+    </div>`;
+  }
+  lista.innerHTML = html;
+}
+
+
+// ============================================================
+// DOSES
+// ============================================================
+function medAtivoNaData(med, dataISO) {
+  const dataConsulta = new Date(dataISO + 'T00:00:00');
+  const inicio = new Date(med.data_inicio + 'T00:00:00');
+  if (dataConsulta < inicio) return false;
+  if (med.data_fim) {
+    const fim = new Date(med.data_fim + 'T00:00:00');
+    if (dataConsulta > fim) return false;
+  }
+  return true;
+}
+
+async function obterDosesDoDia(dataISO) {
+  const meds = await dbGetAll('medicamentos');
+  const doses = [];
+  for (const m of meds) {
+    if (m.ativo !== 1 || !medAtivoNaData(m, dataISO)) continue;
+    const horarios = m.horarios.split(',').map(h => h.trim()).filter(Boolean).sort();
+    for (const h of horarios) {
+      doses.push({
+        medicamento_id: m.id,
+        nome:           m.nome,
+        dosagem:        m.dosagem,
+        forma:          m.forma,
+        paciente:       m.paciente,
+        quantidade_dose:m.quantidade_dose,
+        horario:        h,
+        estoque:        m.estoque,
+        estoque_minimo: m.estoque_minimo
+      });
+    }
+  }
+  doses.sort((a, b) => a.horario.localeCompare(b.horario));
+  return doses;
+}
+
+async function statusDose(dose) {
+  const tomada = await doseFoiTomada(dose.medicamento_id, dataHoje(), dose.horario);
+  if (tomada) return 'TOMADO';
+  const agora = horaAgora();
+  if (agora > dose.horario) return 'PENDENTE';
+  return 'PROGRAMADO';
+}
+
+async function doseFoiTomada(medId, data, horario) {
+  return new Promise((resolve) => {
+    const tx  = db.transaction('doses', 'readonly');
+    const st  = tx.objectStore('doses');
+    const idx = st.index('medData');
+    const req = idx.getKey(IDBKeyRange.only([medId, data, horario]));
+    req.onsuccess = (e) => resolve(!!e.target.result);
+    req.onerror   = () => resolve(false);
+  });
+}
+
+async function registrarDose(medId, data, horario, btn) {
+  const jaExiste = await doseFoiTomada(medId, data, horario);
+  if (jaExiste) { mostrarToast('Dose já registrada!', 'aviso'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Registrando...';
+
+  const agora = horaAgora();
+  await dbAdd('doses', {
+    medicamento_id: medId,
+    data, horario, horario_real: agora, status: 'TOMADO'
+  });
+
+  // Descontar estoque
+  const med = await dbGet('medicamentos', medId);
+  if (med) {
+    const novoEstoque = Math.max(0, med.estoque - med.quantidade_dose);
+    med.estoque = novoEstoque;
+    await dbPut('medicamentos', med);
+  }
+
+  mostrarToast('Dose registrada com sucesso! ✅');
+  renderizarInicio();
+}
+
+
+// ============================================================
+// HISTÓRICO — RENDER
+// ============================================================
+async function renderizarHistorico() {
+  const todas = await dbGetAll('doses');
+  const meds  = await dbGetAll('medicamentos');
+  const medMap = {};
+  meds.forEach(m => medMap[m.id] = m);
+
+  const container = document.getElementById('container-historico');
+
+  if (!todas.length) {
+    container.innerHTML = `<div class="vazio-msg"><span class="vazio-icone">📊</span>Nenhuma dose registrada ainda.</div>`;
+    return;
+  }
+
+  const ordenadas = todas.sort((a, b) => {
+    if (b.data !== a.data) return b.data.localeCompare(a.data);
+    return b.horario.localeCompare(a.horario);
+  });
+
+  const linhas = ordenadas.map(r => {
+    const m = medMap[r.medicamento_id] || {};
+    return `<tr>
+      <td>${formatarDataBR(r.data)}</td>
+      <td><b>${r.horario}</b></td>
+      <td>${r.horario_real || '-'}</td>
+      <td><b>${m.nome || '–'}</b></td>
+      <td>${m.dosagem || '–'}</td>
+      <td><span class="badge badge-verde">✅ Tomou</span></td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="tabela-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Hora Esperada</th>
+            <th>Hora que Tomou</th>
+            <th>Medicamento</th>
+            <th>Dosagem</th>
+            <th>Situação</th>
+          </tr>
+        </thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    </div>`;
+}
+
+
+// ============================================================
+// ESTOQUE — RENDER
+// ============================================================
+async function renderizarEstoque() {
+  const meds   = await dbGetAll('medicamentos');
+  const ativos = meds.filter(m => m.ativo === 1);
+  const lista  = document.getElementById('lista-estoque');
+
+  if (!ativos.length) {
+    lista.innerHTML = `<div class="vazio-msg"><span class="vazio-icone">📦</span>Nenhum remédio cadastrado.</div>`;
+    return;
+  }
+
+  // Ordenar: baixos primeiro
+  ativos.sort((a, b) => {
+    const aBaixo = a.estoque <= a.estoque_minimo ? 0 : 1;
+    const bBaixo = b.estoque <= b.estoque_minimo ? 0 : 1;
+    return aBaixo - bBaixo;
+  });
+
+  lista.innerHTML = `<div class="estoque-grid">` + ativos.map(m => {
+    const baixo  = m.estoque <= m.estoque_minimo;
+    const classe  = baixo ? 'baixo' : 'ok';
+    const classeQtd = baixo ? 'baixo' : 'ok';
+    const status  = baixo
+      ? `<div style="margin-top:6px;"><span class="badge badge-vermelho">🔴 Comprar mais</span></div>`
+      : `<div style="margin-top:6px;"><span class="badge badge-verde">🟢 Tudo certo</span></div>`;
+
+    return `
+    <div class="estoque-card ${classe}">
+      <div class="estoque-esq">
+        <div class="estoque-nome">💊 ${m.nome}</div>
+        <div style="font-size:16px; color:var(--subtexto); margin-top:4px;">${m.dosagem || ''} • ${m.forma}</div>
+        <div style="font-size:16px; color:var(--subtexto); margin-top:2px;">
+          Avisar quando chegar em <b>${m.estoque_minimo}</b> unidades
+        </div>
+        ${status}
+      </div>
+      <div class="estoque-dir">
+        <div class="estoque-qtd ${classeQtd}">${m.estoque}</div>
+        <div class="estoque-qtd-label">unidades</div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+
+// ============================================================
+// EXCLUSÃO (modal)
+// ============================================================
+function pedirExclusao(id, nome) {
+  medicamentoParaExcluir = id;
+  document.getElementById('modal-msg').textContent =
+    `Tem certeza que quer apagar "${nome}"? Esta ação não pode ser desfeita.`;
+  document.getElementById('modal').classList.add('aberto');
+}
+
+function fecharModal() {
+  medicamentoParaExcluir = null;
+  document.getElementById('modal').classList.remove('aberto');
+}
+
+async function confirmarExclusao() {
+  if (!medicamentoParaExcluir) return;
+  await dbDelete('medicamentos', medicamentoParaExcluir);
+
+  // Apagar doses associadas
+  const todasDoses = await dbGetAll('doses');
+  for (const d of todasDoses) {
+    if (d.medicamento_id === medicamentoParaExcluir) {
+      await dbDelete('doses', d.id);
+    }
+  }
+
+  fecharModal();
+  mostrarToast('Remédio apagado.', 'aviso');
+  renderizarMedicamentos();
+}
+
+// Fechar modal clicando fora
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+
+// ============================================================
+// TECLADO: Enter no login
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const ativo = document.querySelector('.painel-aba.ativo');
+    if (ativo && ativo.id === 'painel-entrar') fazerLogin();
+  }
+});
+</script>
+</body>
+</html>
